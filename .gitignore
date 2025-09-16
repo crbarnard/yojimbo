@@ -18,6 +18,7 @@ Makefile
 *.7z
 *.zip
 *.tar.gz
+**/.DS_Store
 
 # Sublime text
 *.sublime-project
