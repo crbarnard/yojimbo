@@ -95,7 +95,6 @@ endif ()
 
 if(BUILD_TESTS)
     enable_testing()
-    target_compile_definitions(serialize PUBLIC -DSERIALIZE_ENABLE_TESTS)
     target_compile_definitions(netcode PUBLIC -DNETCODE_ENABLE_TESTS)
     target_compile_definitions(reliable PUBLIC -DRELIABLE_ENABLE_TESTS)
 
