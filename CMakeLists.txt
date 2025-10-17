@@ -54,7 +54,7 @@ file(GLOB netcode_sources "${CMAKE_CURRENT_SOURCE_DIR}/netcode/*")
 add_library(netcode STATIC ${netcode_sources})
 set_target_properties(netcode PROPERTIES LINKER_LANGUAGE C)
 target_include_directories(netcode PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/netcode)
-target_link_libraries(netcode PRIVATE sodium)
+target_link_libraries(netcode PUBLIC sodium)
 
 
 # yojimbo
