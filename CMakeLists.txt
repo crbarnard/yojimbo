@@ -35,10 +35,6 @@ add_library(reliable STATIC ${reliable_sources})
 set_target_properties(reliable PROPERTIES LINKER_LANGUAGE C)
 target_include_directories(reliable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/reliable)
 
-file(GLOB serialize_sources "${CMAKE_CURRENT_SOURCE_DIR}/serialize/*")
-add_library(serialize STATIC ${serialize_sources})
-set_target_properties(serialize PROPERTIES LINKER_LANGUAGE C)
-target_include_directories(serialize PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/serialize)
 
 
 file(GLOB sodium_sources "${CMAKE_CURRENT_SOURCE_DIR}/sodium/*")
@@ -67,7 +63,10 @@ endif ()
 
 set_target_properties(yojimbo PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(yojimbo PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(yojimbo PUBLIC tlsf serialize reliable netcode)
+target_link_libraries(yojimbo PUBLIC tlsf reliable netcode)
+
+file(GLOB serialize_sources "${CMAKE_CURRENT_SOURCE_DIR}/serialize/*")
+target_include_directories(yojimbo PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/serialize)
 
 # examples
 
