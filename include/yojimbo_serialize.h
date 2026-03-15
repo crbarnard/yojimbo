@@ -48,10 +48,10 @@ namespace yojimbo
             yojimbo_assert( uint16_t( sequence - ack_delta ) == ack );
             ack_in_range = ack_delta <= 64;
         }
-        serialize_bool( stream, ack_in_range );
+        yojimbo_serialize_bool( stream, ack_in_range );
         if ( ack_in_range )
         {
-            serialize_int( stream, ack_delta, 1, 64 );
+            yojimbo_serialize_int( stream, ack_delta, 1, 64 );
             if ( Stream::IsReading )
             {
                 ack = sequence - ack_delta;
@@ -59,7 +59,7 @@ namespace yojimbo
         }
         else
         {
-            serialize_bits( stream, ack, 16 );
+            yojimbo_serialize_bits( stream, ack, 16 );
         }
         return true;
     }

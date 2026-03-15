@@ -2425,7 +2425,7 @@ int main()
 
             check( InitializeYojimbo() );
 
-            serialize_test();
+            yojimbo_serialize_test();
 
             ShutdownYojimbo();
         }

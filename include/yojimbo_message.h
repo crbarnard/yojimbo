@@ -583,7 +583,7 @@ template <typename Stream> bool SerializeMessageBlock( Stream & stream, yojimbo:
 {
     int blockSize = Stream::IsWriting ? blockMessage->GetBlockSize() : 0;
 
-    serialize_int( stream, blockSize, 1, maxBlockSize );
+    yojimbo_serialize_int( stream, blockSize, 1, maxBlockSize );
 
     uint8_t * blockData;
 
@@ -603,7 +603,7 @@ template <typename Stream> bool SerializeMessageBlock( Stream & stream, yojimbo:
         blockData = blockMessage->GetBlockData();
     } 
 
-    serialize_bytes( stream, blockData, blockSize );
+    yojimbo_serialize_bytes( stream, blockData, blockSize );
 
     return true;
 }

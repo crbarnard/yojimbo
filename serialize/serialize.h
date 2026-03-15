@@ -27,9 +27,9 @@
 
 /** @file */
 
-#ifndef serialize_assert
+#ifndef yojimbo_serialize_assert
 #include <assert.h>
-#define serialize_assert assert
+#define yojimbo_serialize_assert assert
 #endif // #ifndef serialize_assert
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
@@ -356,8 +356,8 @@ namespace serialize
 
         BitWriter( void * data, int bytes ) : m_data( (uint32_t*) data ), m_numWords( bytes / 4 )
         {
-            serialize_assert( data );
-            serialize_assert( ( bytes % 4 ) == 0 );
+            yojimbo_serialize_assert( data );
+            yojimbo_serialize_assert( ( bytes % 4 ) == 0 );
             m_numBits = m_numWords * 32;
             m_bitsWritten = 0;
             m_wordIndex = 0;
@@ -377,10 +377,10 @@ namespace serialize
 
         void WriteBits( uint32_t value, int bits )
         {
-            serialize_assert( bits > 0 );
-            serialize_assert( bits <= 32 );
-            serialize_assert( m_bitsWritten + bits <= m_numBits );
-            serialize_assert( uint64_t( value ) <= ( ( 1ULL << bits ) - 1 ) );
+            yojimbo_serialize_assert( bits > 0 );
+            yojimbo_serialize_assert( bits <= 32 );
+            yojimbo_serialize_assert( m_bitsWritten + bits <= m_numBits );
+            yojimbo_serialize_assert( uint64_t( value ) <= ( ( 1ULL << bits ) - 1 ) );
 
             m_scratch |= uint64_t( value ) << m_scratchBits;
 
@@ -388,7 +388,7 @@ namespace serialize
 
             if ( m_scratchBits >= 32 )
             {
-                serialize_assert( m_wordIndex < m_numWords );
+                yojimbo_serialize_assert( m_wordIndex < m_numWords );
                 m_data[m_wordIndex] = host_to_network( uint32_t( m_scratch & 0xFFFFFFFF ) );
                 m_scratch >>= 32;
                 m_scratchBits -= 32;
@@ -413,7 +413,7 @@ namespace serialize
             {
                 uint32_t zero = 0;
                 WriteBits( zero, 8 - remainderBits );
-                serialize_assert( ( m_bitsWritten % 8 ) == 0 );
+                yojimbo_serialize_assert( ( m_bitsWritten % 8 ) == 0 );
             }
         }
 
@@ -428,9 +428,9 @@ namespace serialize
 
         void WriteBytes( const uint8_t * data, int bytes )
         {
-            serialize_assert( GetAlignBits() == 0 );
-            serialize_assert( m_bitsWritten + bytes * 8 <= m_numBits );
-            serialize_assert( ( m_bitsWritten % 32 ) == 0 || ( m_bitsWritten % 32 ) == 8 || ( m_bitsWritten % 32 ) == 16 || ( m_bitsWritten % 32 ) == 24 );
+            yojimbo_serialize_assert( GetAlignBits() == 0 );
+            yojimbo_serialize_assert( m_bitsWritten + bytes * 8 <= m_numBits );
+            yojimbo_serialize_assert( ( m_bitsWritten % 32 ) == 0 || ( m_bitsWritten % 32 ) == 8 || ( m_bitsWritten % 32 ) == 16 || ( m_bitsWritten % 32 ) == 24 );
 
             int headBytes = ( 4 - ( m_bitsWritten % 32 ) / 8 ) % 4;
             if ( headBytes > bytes )
@@ -442,29 +442,29 @@ namespace serialize
 
             FlushBits();
 
-            serialize_assert( GetAlignBits() == 0 );
+            yojimbo_serialize_assert( GetAlignBits() == 0 );
 
             int numWords = ( bytes - headBytes ) / 4;
             if ( numWords > 0 )
             {
-                serialize_assert( ( m_bitsWritten % 32 ) == 0 );
+                yojimbo_serialize_assert( ( m_bitsWritten % 32 ) == 0 );
                 memcpy( &m_data[m_wordIndex], data + headBytes, numWords * 4 );
                 m_bitsWritten += numWords * 32;
                 m_wordIndex += numWords;
                 m_scratch = 0;
             }
 
-            serialize_assert( GetAlignBits() == 0 );
+            yojimbo_serialize_assert( GetAlignBits() == 0 );
 
             int tailStart = headBytes + numWords * 4;
             int tailBytes = bytes - tailStart;
-            serialize_assert( tailBytes >= 0 && tailBytes < 4 );
+            yojimbo_serialize_assert( tailBytes >= 0 && tailBytes < 4 );
             for ( int i = 0; i < tailBytes; ++i )
                 WriteBits( data[tailStart+i], 8 );
 
-            serialize_assert( GetAlignBits() == 0 );
+            yojimbo_serialize_assert( GetAlignBits() == 0 );
 
-            serialize_assert( headBytes + numWords * 4 + tailBytes == bytes );
+            yojimbo_serialize_assert( headBytes + numWords * 4 + tailBytes == bytes );
         }
 
         /**
@@ -477,8 +477,8 @@ namespace serialize
         {
             if ( m_scratchBits != 0 )
             {
-                serialize_assert( m_scratchBits <= 32 );
-                serialize_assert( m_wordIndex < m_numWords );
+                yojimbo_serialize_assert( m_scratchBits <= 32 );
+                yojimbo_serialize_assert( m_wordIndex < m_numWords );
                 m_data[m_wordIndex] = host_to_network( uint32_t( m_scratch & 0xFFFFFFFF ) );
                 m_scratch >>= 32;
                 m_scratchBits = 0;
@@ -576,7 +576,7 @@ namespace serialize
         BitReader( const void * data, int bytes ) : m_data( (const uint32_t*) data ), m_numBytes( bytes )
 #endif // #ifdef SERIALIZE_DEBUG
         {
-            serialize_assert( data );
+            yojimbo_serialize_assert( data );
             m_numBits = m_numBytes * 8;
             m_bitsRead = 0;
             m_scratch = 0;
@@ -607,25 +607,25 @@ namespace serialize
 
         uint32_t ReadBits( int bits )
         {
-            serialize_assert( bits > 0 );
-            serialize_assert( bits <= 32 );
-            serialize_assert( m_bitsRead + bits <= m_numBits );
+            yojimbo_serialize_assert( bits > 0 );
+            yojimbo_serialize_assert( bits <= 32 );
+            yojimbo_serialize_assert( m_bitsRead + bits <= m_numBits );
 
             m_bitsRead += bits;
 
-            serialize_assert( m_scratchBits >= 0 && m_scratchBits <= 64 );
+            yojimbo_serialize_assert( m_scratchBits >= 0 && m_scratchBits <= 64 );
 
             if ( m_scratchBits < bits )
             {
 #ifdef SERIALIZE_DEBUG
-                serialize_assert( m_wordIndex < m_numWords );
+                yojimbo_serialize_assert( m_wordIndex < m_numWords );
 #endif // SERIALIZE_DEBUG
                 m_scratch |= uint64_t( network_to_host( m_data[m_wordIndex] ) ) << m_scratchBits;
                 m_scratchBits += 32;
                 m_wordIndex++;
             }
 
-            serialize_assert( m_scratchBits >= bits );
+            yojimbo_serialize_assert( m_scratchBits >= bits );
 
             const uint32_t output = m_scratch & ( (uint64_t(1)<<bits) - 1 );
 
@@ -650,7 +650,7 @@ namespace serialize
             if ( remainderBits != 0 )
             {
                 uint32_t value = ReadBits( 8 - remainderBits );
-                serialize_assert( m_bitsRead % 8 == 0 );
+                yojimbo_serialize_assert( m_bitsRead % 8 == 0 );
                 if ( value != 0 )
                     return false;
             }
@@ -664,9 +664,9 @@ namespace serialize
 
         void ReadBytes( uint8_t * data, int bytes )
         {
-            serialize_assert( GetAlignBits() == 0 );
-            serialize_assert( m_bitsRead + bytes * 8 <= m_numBits );
-            serialize_assert( ( m_bitsRead % 32 ) == 0 || ( m_bitsRead % 32 ) == 8 || ( m_bitsRead % 32 ) == 16 || ( m_bitsRead % 32 ) == 24 );
+            yojimbo_serialize_assert( GetAlignBits() == 0 );
+            yojimbo_serialize_assert( m_bitsRead + bytes * 8 <= m_numBits );
+            yojimbo_serialize_assert( ( m_bitsRead % 32 ) == 0 || ( m_bitsRead % 32 ) == 8 || ( m_bitsRead % 32 ) == 16 || ( m_bitsRead % 32 ) == 24 );
 
             int headBytes = ( 4 - ( m_bitsRead % 32 ) / 8 ) % 4;
             if ( headBytes > bytes )
@@ -676,29 +676,29 @@ namespace serialize
             if ( headBytes == bytes )
                 return;
 
-            serialize_assert( GetAlignBits() == 0 );
+            yojimbo_serialize_assert( GetAlignBits() == 0 );
 
             int numWords = ( bytes - headBytes ) / 4;
             if ( numWords > 0 )
             {
-                serialize_assert( ( m_bitsRead % 32 ) == 0 );
+                yojimbo_serialize_assert( ( m_bitsRead % 32 ) == 0 );
                 memcpy( data + headBytes, &m_data[m_wordIndex], numWords * 4 );
                 m_bitsRead += numWords * 32;
                 m_wordIndex += numWords;
                 m_scratchBits = 0;
             }
 
-            serialize_assert( GetAlignBits() == 0 );
+            yojimbo_serialize_assert( GetAlignBits() == 0 );
 
             int tailStart = headBytes + numWords * 4;
             int tailBytes = bytes - tailStart;
-            serialize_assert( tailBytes >= 0 && tailBytes < 4 );
+            yojimbo_serialize_assert( tailBytes >= 0 && tailBytes < 4 );
             for ( int i = 0; i < tailBytes; ++i )
                 data[tailStart+i] = (uint8_t) ReadBits( 8 );
 
-            serialize_assert( GetAlignBits() == 0 );
+            yojimbo_serialize_assert( GetAlignBits() == 0 );
 
-            serialize_assert( headBytes + numWords * 4 + tailBytes == bytes );
+            yojimbo_serialize_assert( headBytes + numWords * 4 + tailBytes == bytes );
         }
 
         /**
@@ -844,9 +844,9 @@ namespace serialize
 
         bool SerializeInteger( int32_t value, int32_t min, int32_t max )
         {
-            serialize_assert( min < max );
-            serialize_assert( value >= min );
-            serialize_assert( value <= max );
+            yojimbo_serialize_assert( min < max );
+            yojimbo_serialize_assert( value >= min );
+            yojimbo_serialize_assert( value <= max );
             const int bits = bits_required( min, max );
             uint32_t unsigned_value = value - min;
             m_writer.WriteBits( unsigned_value, bits );
@@ -862,8 +862,8 @@ namespace serialize
 
         bool SerializeBits( uint32_t value, int bits )
         {
-            serialize_assert( bits > 0 );
-            serialize_assert( bits <= 32 );
+            yojimbo_serialize_assert( bits > 0 );
+            yojimbo_serialize_assert( bits <= 32 );
             m_writer.WriteBits( value, bits );
             return true;
         }
@@ -877,8 +877,8 @@ namespace serialize
 
         bool SerializeBytes( const uint8_t * data, int bytes )
         {
-            serialize_assert( data );
-            serialize_assert( bytes >= 0 );
+            yojimbo_serialize_assert( data );
+            yojimbo_serialize_assert( bytes >= 0 );
             SerializeAlign();
             m_writer.WriteBytes( data, bytes );
             return true;
@@ -987,7 +987,7 @@ namespace serialize
 
         bool SerializeInteger( int32_t & value, int32_t min, int32_t max )
         {
-            serialize_assert( min < max );
+            yojimbo_serialize_assert( min < max );
             const int bits = bits_required( min, max );
             if ( m_reader.WouldReadPastEnd( bits ) )
                 return false;
@@ -1005,8 +1005,8 @@ namespace serialize
 
         bool SerializeBits( uint32_t & value, int bits )
         {
-            serialize_assert( bits > 0 );
-            serialize_assert( bits <= 32 );
+            yojimbo_serialize_assert( bits > 0 );
+            yojimbo_serialize_assert( bits <= 32 );
             if ( m_reader.WouldReadPastEnd( bits ) )
                 return false;
             uint32_t read_value = m_reader.ReadBits( bits );
@@ -1114,9 +1114,9 @@ namespace serialize
         bool SerializeInteger( int32_t value, int32_t min, int32_t max )
         {
             (void) value;
-            serialize_assert( min < max );
-            serialize_assert( value >= min );
-            serialize_assert( value <= max );
+            yojimbo_serialize_assert( min < max );
+            yojimbo_serialize_assert( value >= min );
+            yojimbo_serialize_assert( value <= max );
             const int bits = bits_required( min, max );
             m_bitsWritten += bits;
             return true;
@@ -1132,8 +1132,8 @@ namespace serialize
         bool SerializeBits( uint32_t value, int bits )
         {
             (void) value;
-            serialize_assert( bits > 0 );
-            serialize_assert( bits <= 32 );
+            yojimbo_serialize_assert( bits > 0 );
+            yojimbo_serialize_assert( bits <= 32 );
             m_bitsWritten += bits;
             return true;
         }
@@ -1226,15 +1226,15 @@ namespace serialize
         @param max The maximum value.
      */
 
-    #define serialize_int( stream, value, min, max )                    \
+    #define yojimbo_serialize_int( stream, value, min, max )                    \
         do                                                              \
         {                                                               \
-            serialize_assert( min < max );                              \
+            yojimbo_serialize_assert( min < max );                              \
             int32_t int32_value = 0;                                    \
             if ( Stream::IsWriting )                                    \
             {                                                           \
-                serialize_assert( int64_t(value) >= int64_t(min) );     \
-                serialize_assert( int64_t(value) <= int64_t(max) );     \
+                yojimbo_serialize_assert( int64_t(value) >= int64_t(min) );     \
+                yojimbo_serialize_assert( int64_t(value) <= int64_t(max) );     \
                 int32_value = (int32_t) value;                          \
             }                                                           \
             if ( !stream.SerializeInteger( int32_value, min, max ) )    \
@@ -1262,11 +1262,11 @@ namespace serialize
         @param bits The number of bits to serialize in [1,32].
      */
 
-    #define serialize_bits( stream, value, bits )                       \
+    #define yojimbo_serialize_bits( stream, value, bits )                       \
         do                                                              \
         {                                                               \
-            serialize_assert( bits > 0 );                               \
-            serialize_assert( bits <= 64 );                             \
+            yojimbo_serialize_assert( bits > 0 );                               \
+            yojimbo_serialize_assert( bits <= 64 );                             \
             if ( bits <= 32 )                                           \
             {                                                           \
                 uint32_t uint32_value = 0;                              \
@@ -1315,7 +1315,7 @@ namespace serialize
         @param value The boolean value to serialize.
      */
 
-    #define serialize_bool( stream, value )                             \
+    #define yojimbo_serialize_bool( stream, value )                             \
         do                                                              \
         {                                                               \
             uint32_t uint32_bool_value = 0;                             \
@@ -1323,7 +1323,7 @@ namespace serialize
             {                                                           \
                 uint32_bool_value = value ? 1 : 0;                      \
             }                                                           \
-            serialize_bits( stream, uint32_bool_value, 1 );             \
+            yojimbo_serialize_bits( stream, uint32_bool_value, 1 );             \
             if ( Stream::IsReading )                                    \
             {                                                           \
                 value = uint32_bool_value ? true : false;               \
@@ -1354,7 +1354,7 @@ namespace serialize
         @param value The float value to serialize.
      */
 
-    #define serialize_float( stream, value )                                        \
+    #define yojimbo_serialize_float( stream, value )                                        \
         do                                                                          \
         {                                                                           \
             if ( !serialize::serialize_float_internal( stream, value ) )            \
@@ -1428,7 +1428,7 @@ namespace serialize
         {
             tmp.double_value = value;
         }
-        serialize_bits( stream, tmp.int_value, 64 );
+        yojimbo_serialize_bits( stream, tmp.int_value, 64 );
         if ( Stream::IsReading )
         {
             value = tmp.double_value;
@@ -1445,7 +1445,7 @@ namespace serialize
         @param value The double precision floating point value to serialize.
      */
 
-    #define serialize_double( stream, value )                                       \
+    #define yojimbo_serialize_double( stream, value )                                       \
         do                                                                          \
         {                                                                           \
             if ( !serialize::serialize_double_internal( stream, value ) )           \
@@ -1469,7 +1469,7 @@ namespace serialize
         @param bytes The number of bytes to serialize.
      */
 
-    #define serialize_bytes( stream, data, bytes )                                  \
+    #define yojimbo_serialize_bytes( stream, data, bytes )                                  \
         do                                                                          \
         {                                                                           \
             if ( !serialize::serialize_bytes_internal( stream, data, bytes ) )      \
@@ -1484,10 +1484,10 @@ namespace serialize
         if ( Stream::IsWriting )
         {
             length = (int) strlen( string );
-            serialize_assert( length < buffer_size );
+            yojimbo_serialize_assert( length < buffer_size );
         }
-        serialize_int( stream, length, 0, buffer_size - 1 );
-        serialize_bytes( stream, (uint8_t*)string, length );
+        yojimbo_serialize_int( stream, length, 0, buffer_size - 1 );
+        yojimbo_serialize_bytes( stream, (uint8_t*)string, length );
         if ( Stream::IsReading )
         {
             string[length] = '\0';
@@ -1505,7 +1505,7 @@ namespace serialize
         @param buffer_size The size of the string buffer. String with terminating null character must fit into this buffer.
      */
 
-    #define serialize_string( stream, string, buffer_size )                                 \
+    #define yojimbo_serialize_string( stream, string, buffer_size )                                 \
         do                                                                                  \
         {                                                                                   \
             if ( !serialize::serialize_string_internal( stream, string, buffer_size ) )     \
@@ -1522,7 +1522,7 @@ namespace serialize
         @param stream The stream object. May be a read, write or measure stream.
      */
 
-    #define serialize_align( stream )                                                       \
+    #define yojimbo_serialize_align( stream )                                                       \
         do                                                                                  \
         {                                                                                   \
             if ( !stream.SerializeAlign() )                                                 \
@@ -1540,7 +1540,7 @@ namespace serialize
         @param object The object to serialize. Must have a serialize method on it.
      */
 
-    #define serialize_object( stream, object )                                              \
+    #define yojimbo_serialize_object( stream, object )                                              \
         do                                                                                  \
         {                                                                                   \
             if ( !object.Serialize( stream ) )                                              \
@@ -1555,7 +1555,7 @@ namespace serialize
         uint32_t difference = 0;
         if ( Stream::IsWriting )
         {
-            serialize_assert( previous < current );
+            yojimbo_serialize_assert( previous < current );
             difference = current - previous;
         }
 
@@ -1564,7 +1564,7 @@ namespace serialize
         {
             oneBit = difference == 1;
         }
-        serialize_bool( stream, oneBit );
+        yojimbo_serialize_bool( stream, oneBit );
         if ( oneBit )
         {
             if ( Stream::IsReading )
@@ -1579,10 +1579,10 @@ namespace serialize
         {
             twoBits = difference <= 6;
         }
-        serialize_bool( stream, twoBits );
+        yojimbo_serialize_bool( stream, twoBits );
         if ( twoBits )
         {
-            serialize_int( stream, difference, 2, 6 );
+            yojimbo_serialize_int( stream, difference, 2, 6 );
             if ( Stream::IsReading )
             {
                 current = previous + difference;
@@ -1595,10 +1595,10 @@ namespace serialize
         {
             fourBits = difference <= 23;
         }
-        serialize_bool( stream, fourBits );
+        yojimbo_serialize_bool( stream, fourBits );
         if ( fourBits )
         {
-            serialize_int( stream, difference, 7, 23 );
+            yojimbo_serialize_int( stream, difference, 7, 23 );
             if ( Stream::IsReading )
             {
                 current = previous + difference;
@@ -1611,10 +1611,10 @@ namespace serialize
         {
             eightBits = difference <= 280;
         }
-        serialize_bool( stream, eightBits );
+        yojimbo_serialize_bool( stream, eightBits );
         if ( eightBits )
         {
-            serialize_int( stream, difference, 24, 280 );
+            yojimbo_serialize_int( stream, difference, 24, 280 );
             if ( Stream::IsReading )
             {
                 current = previous + difference;
@@ -1627,10 +1627,10 @@ namespace serialize
         {
             twelveBits = difference <= 4377;
         }
-        serialize_bool( stream, twelveBits );
+        yojimbo_serialize_bool( stream, twelveBits );
         if ( twelveBits )
         {
-            serialize_int( stream, difference, 281, 4377 );
+            yojimbo_serialize_int( stream, difference, 281, 4377 );
             if ( Stream::IsReading )
             {
                 current = previous + difference;
@@ -1643,10 +1643,10 @@ namespace serialize
         {
             sixteenBits = difference <= 69914;
         }
-        serialize_bool( stream, sixteenBits );
+        yojimbo_serialize_bool( stream, sixteenBits );
         if ( sixteenBits )
         {
-            serialize_int( stream, difference, 4378, 69914 );
+            yojimbo_serialize_int( stream, difference, 4378, 69914 );
             if ( Stream::IsReading )
             {
                 current = previous + difference;
@@ -1655,7 +1655,7 @@ namespace serialize
         }
 
         uint32_t value = current;
-        serialize_bits( stream, value, 32 );
+        yojimbo_serialize_bits( stream, value, 32 );
         if ( Stream::IsReading )
         {
             current = value;
@@ -1697,14 +1697,14 @@ namespace serialize
             {
                 ack_delta = (int)sequence + 65536 - ack;
             }
-            serialize_assert( ack_delta > 0 );
-            serialize_assert( uint16_t( sequence - ack_delta ) == ack );
+            yojimbo_serialize_assert( ack_delta > 0 );
+            yojimbo_serialize_assert( uint16_t( sequence - ack_delta ) == ack );
             ack_in_range = ack_delta <= 64;
         }
-        serialize_bool( stream, ack_in_range );
+        yojimbo_serialize_bool( stream, ack_in_range );
         if ( ack_in_range )
         {
-            serialize_int( stream, ack_delta, 1, 64 );
+            yojimbo_serialize_int( stream, ack_delta, 1, 64 );
             if ( Stream::IsReading )
             {
                 ack = sequence - ack_delta;
@@ -1712,7 +1712,7 @@ namespace serialize
         }
         else
         {
-            serialize_bits( stream, ack, 16 );
+            yojimbo_serialize_bits( stream, ack, 16 );
         }
         return true;
     }
@@ -1722,8 +1722,8 @@ namespace serialize
     #define read_bits( stream, value, bits )                                                \
     do                                                                                      \
     {                                                                                       \
-        serialize_assert( bits > 0 );                                                       \
-        serialize_assert( bits <= 32 );                                                     \
+        yojimbo_serialize_assert( bits > 0 );                                                       \
+        yojimbo_serialize_assert( bits <= 32 );                                                     \
         uint32_t uint32_value= 0;                                                           \
         if ( !stream.SerializeBits( uint32_value, bits ) )                                  \
         {                                                                                   \
@@ -1735,7 +1735,7 @@ namespace serialize
     #define read_int( stream, value, min, max )                                             \
         do                                                                                  \
         {                                                                                   \
-            serialize_assert( min < max );                                                  \
+            yojimbo_serialize_assert( min < max );                                                  \
             int32_t int32_value = 0;                                                        \
             if ( !stream.SerializeInteger( int32_value, min, max ) )                        \
             {                                                                               \
@@ -1766,8 +1766,8 @@ namespace serialize
     #define write_bits( stream, value, bits )                                               \
         do                                                                                  \
         {                                                                                   \
-            serialize_assert( bits > 0 );                                                   \
-            serialize_assert( bits <= 32 );                                                 \
+            yojimbo_serialize_assert( bits > 0 );                                                   \
+            yojimbo_serialize_assert( bits <= 32 );                                                 \
             uint32_t uint32_value = (uint32_t) value;                                       \
             if ( !stream.SerializeBits( uint32_value, bits ) )                              \
             {                                                                               \
@@ -1778,9 +1778,9 @@ namespace serialize
     #define write_int( stream, value, min, max )                                            \
         do                                                                                  \
         {                                                                                   \
-            serialize_assert( min < max );                                                  \
-            serialize_assert( value >= min );                                               \
-            serialize_assert( value <= max );                                               \
+            yojimbo_serialize_assert( min < max );                                                  \
+            yojimbo_serialize_assert( value >= min );                                               \
+            yojimbo_serialize_assert( value <= max );                                               \
             int32_t int32_value = (int32_t) value;                                          \
             if ( !stream.SerializeInteger( int32_value, min, max ) )                        \
                 return false;                                                               \
@@ -1799,9 +1799,9 @@ namespace serialize
 
 inline void serialize_copy_string( char * dest, const char * source, size_t dest_size )
 {
-    serialize_assert( dest );
-    serialize_assert( source );
-    serialize_assert( dest_size >= 1 );
+    yojimbo_serialize_assert( dest );
+    yojimbo_serialize_assert( source );
+    yojimbo_serialize_assert( dest_size >= 1 );
     memset( dest, 0, dest_size );
     for ( size_t i = 0; i < dest_size - 1; i++ )
     {
@@ -1831,7 +1831,7 @@ inline void SerializeCheckHandler( const char * condition,
     exit( 1 );
 }
 
-#define serialize_check( condition )                                                    \
+#define yojimbo_serialize_check( condition )                                                    \
 do                                                                                      \
 {                                                                                       \
     if ( !(condition) )                                                                 \
@@ -1848,17 +1848,17 @@ inline void test_endian()
 
 #if SERIALIZE_LITTLE_ENDIAN
 
-    serialize_check( bytes[0] == 0x44 );
-    serialize_check( bytes[1] == 0x33 );
-    serialize_check( bytes[2] == 0x22 );
-    serialize_check( bytes[3] == 0x11 );
+    yojimbo_serialize_check( bytes[0] == 0x44 );
+    yojimbo_serialize_check( bytes[1] == 0x33 );
+    yojimbo_serialize_check( bytes[2] == 0x22 );
+    yojimbo_serialize_check( bytes[3] == 0x11 );
 
 #else // #if SERIALIZE_LITTLE_ENDIAN
 
-    serialize_check( bytes[3] == 0x44 );
-    serialize_check( bytes[2] == 0x33 );
-    serialize_check( bytes[1] == 0x22 );
-    serialize_check( bytes[0] == 0x11 );
+    yojimbo_serialize_check( bytes[3] == 0x44 );
+    yojimbo_serialize_check( bytes[2] == 0x33 );
+    yojimbo_serialize_check( bytes[1] == 0x22 );
+    yojimbo_serialize_check( bytes[0] == 0x11 );
 
 #endif // #if SERIALIZE_LITTLE_ENDIAN
 }
@@ -1871,10 +1871,10 @@ inline void test_bitpacker()
 
     serialize::BitWriter writer( buffer, BufferSize );
 
-    serialize_check( writer.GetData() == buffer );
-    serialize_check( writer.GetBitsWritten() == 0 );
-    serialize_check( writer.GetBytesWritten() == 0 );
-    serialize_check( writer.GetBitsAvailable() == BufferSize * 8 );
+    yojimbo_serialize_check( writer.GetData() == buffer );
+    yojimbo_serialize_check( writer.GetBitsWritten() == 0 );
+    yojimbo_serialize_check( writer.GetBytesWritten() == 0 );
+    yojimbo_serialize_check( writer.GetBitsAvailable() == BufferSize * 8 );
 
     writer.WriteBits( 0, 1 );
     writer.WriteBits( 1, 1 );
@@ -1887,20 +1887,20 @@ inline void test_bitpacker()
 
     const int bitsWritten = 1 + 1 + 8 + 8 + 10 + 16 + 32;
 
-    serialize_check( writer.GetBytesWritten() == 10 );
-    serialize_check( writer.GetBitsWritten() == bitsWritten );
-    serialize_check( writer.GetBitsAvailable() == BufferSize * 8 - bitsWritten );
+    yojimbo_serialize_check( writer.GetBytesWritten() == 10 );
+    yojimbo_serialize_check( writer.GetBitsWritten() == bitsWritten );
+    yojimbo_serialize_check( writer.GetBitsAvailable() == BufferSize * 8 - bitsWritten );
 
     const int bytesWritten = writer.GetBytesWritten();
 
-    serialize_check( bytesWritten == 10 );
+    yojimbo_serialize_check( bytesWritten == 10 );
 
     memset( buffer + bytesWritten, 0, BufferSize - bytesWritten );
 
     serialize::BitReader reader( buffer, bytesWritten );
 
-    serialize_check( reader.GetBitsRead() == 0 );
-    serialize_check( reader.GetBitsRemaining() == bytesWritten * 8 );
+    yojimbo_serialize_check( reader.GetBitsRead() == 0 );
+    yojimbo_serialize_check( reader.GetBitsRemaining() == bytesWritten * 8 );
 
     uint32_t a = reader.ReadBits( 1 );
     uint32_t b = reader.ReadBits( 1 );
@@ -1910,32 +1910,32 @@ inline void test_bitpacker()
     uint32_t f = reader.ReadBits( 16 );
     uint32_t g = reader.ReadBits( 32 );
 
-    serialize_check( a == 0 );
-    serialize_check( b == 1 );
-    serialize_check( c == 10 );
-    serialize_check( d == 255 );
-    serialize_check( e == 1000 );
-    serialize_check( f == 50000 );
-    serialize_check( g == 9999999 );
+    yojimbo_serialize_check( a == 0 );
+    yojimbo_serialize_check( b == 1 );
+    yojimbo_serialize_check( c == 10 );
+    yojimbo_serialize_check( d == 255 );
+    yojimbo_serialize_check( e == 1000 );
+    yojimbo_serialize_check( f == 50000 );
+    yojimbo_serialize_check( g == 9999999 );
 
-    serialize_check( reader.GetBitsRead() == bitsWritten );
-    serialize_check( reader.GetBitsRemaining() == bytesWritten * 8 - bitsWritten );
+    yojimbo_serialize_check( reader.GetBitsRead() == bitsWritten );
+    yojimbo_serialize_check( reader.GetBitsRemaining() == bytesWritten * 8 - bitsWritten );
 }
 
 inline void test_bits_required()
 {
-    serialize_check( serialize::bits_required( 0, 0 ) == 0 );
-    serialize_check( serialize::bits_required( 0, 1 ) == 1 );
-    serialize_check( serialize::bits_required( 0, 2 ) == 2 );
-    serialize_check( serialize::bits_required( 0, 3 ) == 2 );
-    serialize_check( serialize::bits_required( 0, 4 ) == 3 );
-    serialize_check( serialize::bits_required( 0, 5 ) == 3 );
-    serialize_check( serialize::bits_required( 0, 6 ) == 3 );
-    serialize_check( serialize::bits_required( 0, 7 ) == 3 );
-    serialize_check( serialize::bits_required( 0, 8 ) == 4 );
-    serialize_check( serialize::bits_required( 0, 255 ) == 8 );
-    serialize_check( serialize::bits_required( 0, 65535 ) == 16 );
-    serialize_check( serialize::bits_required( 0, 4294967295 ) == 32 );
+    yojimbo_serialize_check( serialize::bits_required( 0, 0 ) == 0 );
+    yojimbo_serialize_check( serialize::bits_required( 0, 1 ) == 1 );
+    yojimbo_serialize_check( serialize::bits_required( 0, 2 ) == 2 );
+    yojimbo_serialize_check( serialize::bits_required( 0, 3 ) == 2 );
+    yojimbo_serialize_check( serialize::bits_required( 0, 4 ) == 3 );
+    yojimbo_serialize_check( serialize::bits_required( 0, 5 ) == 3 );
+    yojimbo_serialize_check( serialize::bits_required( 0, 6 ) == 3 );
+    yojimbo_serialize_check( serialize::bits_required( 0, 7 ) == 3 );
+    yojimbo_serialize_check( serialize::bits_required( 0, 8 ) == 4 );
+    yojimbo_serialize_check( serialize::bits_required( 0, 255 ) == 8 );
+    yojimbo_serialize_check( serialize::bits_required( 0, 65535 ) == 16 );
+    yojimbo_serialize_check( serialize::bits_required( 0, 4294967295 ) == 32 );
 }
 
 const int MaxItems = 11;
@@ -2005,36 +2005,36 @@ struct TestObject
     {
         const TestContext & context = *(const TestContext*) stream.GetContext();
 
-        serialize_int( stream, data.a, context.min, context.max );
-        serialize_int( stream, data.b, context.min, context.max );
+        yojimbo_serialize_int( stream, data.a, context.min, context.max );
+        yojimbo_serialize_int( stream, data.b, context.min, context.max );
 
-        serialize_int( stream, data.c, -100, 10000 );
+        yojimbo_serialize_int( stream, data.c, -100, 10000 );
 
-        serialize_bits( stream, data.d, 6 );
-        serialize_bits( stream, data.e, 8 );
-        serialize_bits( stream, data.f, 7 );
+        yojimbo_serialize_bits( stream, data.d, 6 );
+        yojimbo_serialize_bits( stream, data.e, 8 );
+        yojimbo_serialize_bits( stream, data.f, 7 );
 
-        serialize_align( stream );
+        yojimbo_serialize_align( stream );
 
-        serialize_bool( stream, data.g );
+        yojimbo_serialize_bool( stream, data.g );
 
-        serialize_int( stream, data.numItems, 0, MaxItems - 1 );
+        yojimbo_serialize_int( stream, data.numItems, 0, MaxItems - 1 );
         for ( int i = 0; i < data.numItems; ++i )
-            serialize_bits( stream, data.items[i], 8 );
+            yojimbo_serialize_bits( stream, data.items[i], 8 );
 
-        serialize_float( stream, data.float_value );
+        yojimbo_serialize_float( stream, data.float_value );
 
         serialize_compressed_float( stream, data.compressed_float_value, 0, 10, 0.01 );
 
-        serialize_double( stream, data.double_value );
+        yojimbo_serialize_double( stream, data.double_value );
 
-        serialize_bits( stream, data.uint64_value, 64 );
+        yojimbo_serialize_bits( stream, data.uint64_value, 64 );
 
         serialize_int_relative( stream, data.a, data.int_relative );
 
-        serialize_bytes( stream, data.bytes, sizeof( data.bytes ) );
+        yojimbo_serialize_bytes( stream, data.bytes, sizeof( data.bytes ) );
 
-        serialize_string( stream, data.string, sizeof( data.string ) );
+        yojimbo_serialize_string( stream, data.string, sizeof( data.string ) );
 
         return true;
     }
@@ -2077,7 +2077,7 @@ inline void test_stream()
     readStream.SetContext( &context );
     readObject.Serialize( readStream );
 
-    serialize_check( readObject == writeObject );
+    yojimbo_serialize_check( readObject == writeObject );
 }
 
 #define SERIALIZE_RUN_TEST( test_function )                                 \
@@ -2088,7 +2088,7 @@ inline void test_stream()
     }                                                                       \
     while (0)
 
-inline void serialize_test()
+inline void yojimbo_serialize_test()
 {
     // while ( 1 )
     {

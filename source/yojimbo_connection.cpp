@@ -50,7 +50,7 @@ namespace yojimbo
         template <typename Stream> bool Serialize( Stream & stream, MessageFactory & messageFactory, const ConnectionConfig & connectionConfig )
         {
             const int numChannels = connectionConfig.numChannels;
-            serialize_int( stream, numChannelEntries, 0, connectionConfig.numChannels );
+            yojimbo_serialize_int( stream, numChannelEntries, 0, connectionConfig.numChannels );
 #if YOJIMBO_DEBUG_MESSAGE_BUDGET
             yojimbo_assert( stream.GetBitsProcessed() <= ConservativePacketHeaderBits );
 #endif // #if YOJIMBO_DEBUG_MESSAGE_BUDGET

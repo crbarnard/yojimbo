@@ -73,7 +73,7 @@ public:
 
     template <typename Stream>
     bool Serialize(Stream& stream) {
-        serialize_int(stream, m_data, 0, 512);
+        yojimbo_serialize_int(stream, m_data, 0, 512);
         return true;
     }
 
